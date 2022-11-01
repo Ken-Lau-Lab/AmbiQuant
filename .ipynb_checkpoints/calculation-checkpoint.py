@@ -293,5 +293,25 @@ def mean_pct_ambient(sample_dat, num_ambient):
 
 
 
+#--------------------------------------------------------------------------------------------------------------------------------------------------------Inverse some metrics to make them positively associated with ambient level----------------------------------------------------------------------------------------------------------------------------------------------------
 
+def inverse_max_secant(curr_val):
+    """max sencat values range (0,1), so subtract the value from 1 will give an inverted value"""
+    return 1-curr_val
+
+def inverse_scaled_slope_sum(curr_val):
+    """cells' scaled_slope_sum values range (0,1), so subtract the value from 1 will give an inverted value"""
+    return 1-curr_val
+
+def inverse_auc_pct(curr_val):
+    """AUC percentage values range (0.5, 1), so we subtract curr_value from 1, which will give values range from (0, 0.5).
+    To scale up to (0,1), just multiply the value with 2 """
+    return (1-curr_val)*2
+
+def inverse_secant_std(curr_val):
+    """From simulated data, the secant line std values range from ~0.025 to 0.225
+    In extreme cases, where n is very small, std approaches 0.5, and std cannot get smaller than 0.
+    Subtracting the curr_val from 0.5 is chosen to invert the value """
+
+    return 0.5-curr_val
 

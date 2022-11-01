@@ -1,4 +1,7 @@
 #TODO: delete unused packages 
+#TODO: add the inverted flag (copy from the quality folder script )
+#TODO: label which figures from the paper 
+
 
 import scanpy as sc
 import dropkick as dk
@@ -143,16 +146,19 @@ def plot_freq_weighted_slope(sample_dat,  thresh = None ,ax = None, ret = None, 
         #calculate required results
         thresh, ret = calc.bin_cumsum_slope( sample_dat, scale, mode = mode) 
     
+    #getting numerical values from the calculation moodule 
     res, mean_slope, high_slope_area, thresh = calc.high_slope_area( sample_dat, thresh, scale = scale, ret = ret)
     
-    #for plotting the area where the score is calculated from
+    #high slopes are those beyound threshold 
     high_slopes = mean_slope[mean_slope>thresh]
+    #res are the mean_slope* frequency values (the y-values for this plot)
+    #getting the y-values that sohuld be colored as high slope region
     high_res = res[len(res) - len(high_slopes) : len(res)]
     
     ax5 = ax
     ax5.plot(mean_slope, res) 
     ax5.fill_between(mean_slope, res, step="pre", alpha=0.4)
-    #to high light the area calculated
+    #to high light the high slope area
     ax5.fill_between(high_slopes, high_res, step="pre", alpha=0.4, color = 'salmon')
     ax5.set_xlabel('Mean Slope of Bins')
     ax5.set_ylabel('Frequency * Slope')
@@ -170,22 +176,84 @@ def plot_freq_weighted_slope(sample_dat,  thresh = None ,ax = None, ret = None, 
 #finished annotation of plot3, TODO: start with plot4
 #plot 4
 def plot_secant_line( sample_dat, cum_sum = None, ax = None,  return_dat = False):
+    """This function calls calc_secant_lines() function to overlay secant lines, high-light max secant lines on the cumulative sum curve with corresponding numeric annotations 
+    @param sample_dat: the anndata object of the data
+    @param cum_sum: cumulative curve that will be used (returned value from plot1). If None, calculate from data
+    @param ax: the Axes object from pyplot (or seaborn) where this plot will be shown. If set None, a new axes object will be created. Axes will always be returned
+    @param return_dat: if set True, the [ax,max_secant, std_val, cum_curve_area_ratio] will be returned, else only the Axes will be returned. max_secant is the length of the maximal secant line among all secant lines, std_val is the standard deviation of secant lines, cum_curve_area_ratio is the AUC percentage defined in the paper 
+    
+    @return: see return_dat param description 
+    """
     if(cum_sum is None):
         cum_sum = np.cumsum(sample_dat.obs['total_counts'])
         
-    [max_secant, std_val, cum_curve_area_ratio] = func_qc.calc_secant_lines(sample_dat, cumsum=cum_sum, ax = ax)
+    #max secant line distance, secant line st. dev and AUC percentage (AKA ratio (area under the cumsum curve: area of the minimal rectangle circumscribing the cumsum curve) ) 
+    [max_secant, std_val, cum_curve_area_ratio] = calc_secant_lines(sample_dat, cumsum=cum_sum, ax = ax)
 
     
     if return_dat:
         return ax, max_secant, std_val, cum_curve_area_ratio
     return ax
 
-#------------------------------------------------------------------------------------------------
-#------------------------------------------------------------------------------------------------
-#ambient gene plots
 
-#plot 1
+
+
+def calc_secant_lines(samp, cumsum ,  ax = None, invert_score = False):
+    """ This function is a helper function that is called by plot_secant_line() and calculates the secant lines for the cumulative count curve for ranked barcode given a sample. See plot_secant_line() for more detail. Some codes are learned from QCPipe.qc.find_inflection() method"""
+
+    if( cumsum is None):
+        cumsum =  np.cumsum(samp.obs['total_counts'])
+    
+    cumsum = np.array(cumsum) #enforce array type for cumsum 
+    x_vals=np.arange(0,samp.n_obs) #unit x values 
+
+    #Secant line computation learned from QCPipe 
+    #calculate secant line length
+    secant_coef=cumsum[samp.obs.shape[0]-1]/samp.obs.shape[0]
+
+    secant_line=secant_coef*x_vals
+    secant_dist=abs(cumsum-secant_line)
+    std_val = np.std(secant_dist)
+    ratio = zc_qc.area_ratio_sample(samp)
+    max_dist = max(secant_dist)
+    max_ind = np.argmax(secant_dist)
+
+    #plot the secant lines
+    if (ax is None):
+        _, ax = plt.subplots(figsize=(4, 4))
+    ax.plot(x_vals, secant_line)
+    ax.plot(x_vals, cumsum)
+    vline_range = range(0, samp.n_obs, 200)
+    
+    #plot all secant lines 
+    ax.vlines(x_vals[vline_range], secant_line[vline_range],cumsum[vline_range], colors="lightgrey" )
+    #high light the max secant line
+    ax.vlines(x_vals[max_ind], secant_line[max_ind], cumsum[max_ind], colors = 'green')
+    
+    if(invert_score):
+        #make the results positively correlated with ambient contamination 
+        max_dist = calc.inverse_max_secant(max_dist)
+        std_val = calc.inverse_secant_std(std_val)
+        ratio = calc.inverse_auc_pct(ratio)
+        ax.text(int(0.32*max(x_vals) ), 0.1*max(cumsum) , f"inverted max dist.: {max_dist:.2f}\n inverted stdev: {std_val:.2e}\n inverted area ratio: {ratio:.2f}", fontsize = 'medium')
+    else:      
+        ax.text(int(0.4*max(x_vals) ), 0.3*max(cumsum) , f"max distance: {max_dist:.2f}\n stdev: {std_val:.2e}\n area ratio: {ratio:.2f}", fontsize = 'medium')
+        
+    ax.set_xlabel('Ranked Barcode')
+    ax.set_ylabel('Scaled Cumulative Count')
+
+
+
+    #return the standard deviation for secant lines 
+    return [max_dist, std_val, ratio ]
+
+
+#------------------------------------------------------------------------------------------------
+#------------------------------------------------------------------------------------------------
+
+#ambient gene plots
 def plot_dropout(sample_dat, drop_cut_boolean, dropout_thresh = 2, ax = None, return_dat = False):
+    """This function makes the drop-out over ranked barcode plot"""
     if (ax is None):
         _, ax = plt.subplots(figsize=(4, 4))
     
@@ -217,12 +285,9 @@ def plot_dropout(sample_dat, drop_cut_boolean, dropout_thresh = 2, ax = None, re
     if return_dat:
         return ax, amb_genes, sample_dat
     return ax
-    
-  
 
 
 #plot 2 
-
 def plot_pct_ambient(sample_dat, dat_plot_dropout = False, ax = None , return_dat = False):
     if(dat_plot_dropout == False):
         print("run plot_dropout() on the sample before this function")
