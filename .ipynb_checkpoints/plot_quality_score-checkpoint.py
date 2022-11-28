@@ -69,7 +69,6 @@ def plot_cum_sum(sample_dat, scale = True, ax =None, return_data = False ):
     
     
 #plot 2
-#TODO: make sure all place can set mode 
 def plot_slope(sample_dat, cum_sum = None, ax = None, return_dat = False, scale = True, mode = -1):
     """
     A frequency distribution histogram of the slope of the cumulative curve plot. Number of bins set to 100. 
@@ -92,7 +91,6 @@ def plot_slope(sample_dat, cum_sum = None, ax = None, return_dat = False, scale 
     if(cum_sum is None):
         cum_sum = np.cumsum(sample_dat.obs['total_counts'])
         
-    #this if block is newly added, if the result differs a lot, revert back to not having this block
     if(scale):
         x1 = minmax_scale(x1)
         cum_sum = minmax_scale(cum_sum)
@@ -122,7 +120,7 @@ def plot_slope(sample_dat, cum_sum = None, ax = None, return_dat = False, scale 
 
 #plot 3 
 
-def plot_freq_weighted_slope(sample_dat,  thresh = None ,ax = None, ret = None, return_dat = False, scale = True, mode = -1):
+def plot_freq_weighted_slope(sample_dat,  thresh = None ,ax = None, ret = None, return_dat = False, scale = True, mode = -1,  invert_score = False):
     """
     Scaled slope sum plot, where the y values are bins' freqency (height)* bin's x-axis midpoint(mean slope of cumsum curve) for the bins in plot2's histgram. The x-values are slopes of cumsum curve (same with plot 2). The pink color indicates an estimated real cell region whereas blue color indicates empty droplets. 
     
@@ -135,8 +133,6 @@ def plot_freq_weighted_slope(sample_dat,  thresh = None ,ax = None, ret = None, 
     @param mode: the mode to cut-off slopes for plot 3. See calculation.get_freq_slope_bin_cut() function for detailed description. Default set to -1: threshold = median of slopes + 1 stdev of the slopes 
     
     @return: see return_dat
-    
-
     """
     
     if (ax is None):
@@ -162,7 +158,13 @@ def plot_freq_weighted_slope(sample_dat,  thresh = None ,ax = None, ret = None, 
     ax5.fill_between(high_slopes, high_res, step="pre", alpha=0.4, color = 'salmon')
     ax5.set_xlabel('Mean Slope of Bins')
     ax5.set_ylabel('Frequency * Slope')
-    ax5.text(0.6*max(mean_slope), 0.4*max(res), f"high slope area:\n {high_slope_area: .2f}")
+    
+    if(invert_score):
+        high_slope_area = calc.inverse_scaled_slope_sum(high_slope_area)
+        ax5.text(0.5*max(mean_slope), 0.9*max(res), f"inverted high\nslope area: {high_slope_area: .2f}")
+    else:
+        ax5.text(0.6*max(mean_slope), 0.4*max(res), f"high slope area:\n {high_slope_area: .2f}")
+    
     x_axis = np.linspace(min(mean_slope), max(mean_slope), 6)
     ax5.set_xticks(x_axis)
     ax5.set_xticklabels([f"{i:.1e}" for i in x_axis])
@@ -175,7 +177,7 @@ def plot_freq_weighted_slope(sample_dat,  thresh = None ,ax = None, ret = None, 
 
 #finished annotation of plot3, TODO: start with plot4
 #plot 4
-def plot_secant_line( sample_dat, cum_sum = None, ax = None,  return_dat = False):
+def plot_secant_line( sample_dat, cum_sum = None, ax = None,  return_dat = False, invert_score = False):
     """This function calls calc_secant_lines() function to overlay secant lines, high-light max secant lines on the cumulative sum curve with corresponding numeric annotations 
     @param sample_dat: the anndata object of the data
     @param cum_sum: cumulative curve that will be used (returned value from plot1). If None, calculate from data
@@ -188,7 +190,7 @@ def plot_secant_line( sample_dat, cum_sum = None, ax = None,  return_dat = False
         cum_sum = np.cumsum(sample_dat.obs['total_counts'])
         
     #max secant line distance, secant line st. dev and AUC percentage (AKA ratio (area under the cumsum curve: area of the minimal rectangle circumscribing the cumsum curve) ) 
-    [max_secant, std_val, cum_curve_area_ratio] = calc_secant_lines(sample_dat, cumsum=cum_sum, ax = ax)
+    [max_secant, std_val, cum_curve_area_ratio] = calc_secant_lines(sample_dat, cumsum=cum_sum, ax = ax, invert_score = invert_score)
 
     
     if return_dat:
@@ -214,7 +216,7 @@ def calc_secant_lines(samp, cumsum ,  ax = None, invert_score = False):
     secant_line=secant_coef*x_vals
     secant_dist=abs(cumsum-secant_line)
     std_val = np.std(secant_dist)
-    ratio = zc_qc.area_ratio_sample(samp)
+    ratio = func_qc.area_ratio_sample(samp)
     max_dist = max(secant_dist)
     max_ind = np.argmax(secant_dist)
 
@@ -362,7 +364,7 @@ def formatted_figures(dat, save_amb_ls = None, save_fig = None, show_dat_name = 
     ax1, cum_sum = plot_cum_sum(dat, scale = True, ax =ax1, return_data = True )
     if(show_dat_name):
         ax1.set_title(show_dat_name)
-    ax2, ret, mean_end_grad = plot_slope( dat, cum_sum = cum_sum, ax = ax2, return_dat = True )
+    ax2, ret, mean_end_grad = plot_slope( dat, cum_sum = cum_sum, ax = ax2, return_dat = True, mode = mode )
     print(f"mean_end_grad: {mean_end_grad}")
     ax3, ratio = plot_freq_weighted_slope(dat, mean_end_grad,  ax = ax3, ret = ret, return_dat = True, mode = mode)
     ax4, max_secant, std_val, cum_curve_area_ratio = plot_secant_line( dat, cum_sum = cum_sum, ax = ax4,  return_dat = True)
@@ -385,7 +387,7 @@ def formatted_figures(dat, save_amb_ls = None, save_fig = None, show_dat_name = 
 
 def formatted_figures_one_column(dat, save_amb_ls = None, 
                       save_fig = None, show_dat_name = None, 
-                      slope_freq_mode = 1):
+                      slope_freq_mode = -1):
     
     fig = plt.figure(figsize = [6,34])
     ax1 = fig.add_subplot(711)
@@ -415,6 +417,50 @@ def formatted_figures_one_column(dat, save_amb_ls = None,
     
     plt.tight_layout()
     plt.rcParams["axes.grid"] =False
+    
+    
+    if(save_amb_ls and len(amb_genes) >0):
+        np.savetxt(save_amb_ls,amb_genes, delimiter=',', fmt = "%s")
+    #the 1st ratio is freq*slope area ratio over the entire square ratio
+    if(save_fig):
+        plt.savefig(save_fig)
+    return [ratio, max_secant, std_val, cum_curve_area_ratio, len(amb_genes), mean_pct, dat]
+
+
+def formatted_figures_one_column_inverted(dat, save_amb_ls = None, 
+                      save_fig = None, show_dat_name = None, 
+                      slope_freq_mode = -1, invert_scores = True):
+    
+    fig = plt.figure(figsize = [6,34])
+    ax1 = fig.add_subplot(711)
+    ax2 = fig.add_subplot(712)
+    ax3 = fig.add_subplot(713)
+    ax4 = fig.add_subplot(714)
+    ax5 = fig.add_subplot(715)
+    ax6 = fig.add_subplot(716)
+    ax7 = fig.add_subplot(717)
+    
+    plt.tight_layout()
+    plt.rcParams["axes.grid"] =False
+
+    
+    ax1, cum_sum = plot_cum_sum(dat, scale = True, ax =ax1, return_data = True )
+    if(show_dat_name):
+        ax1.set_title(show_dat_name)
+    ax2, ret, mean_end_grad = plot_slope( dat, cum_sum = cum_sum, ax = ax2, return_dat = True, mode = slope_freq_mode)
+    print(f"mean_end_grad: {mean_end_grad}")
+    ax3, ratio = plot_freq_weighted_slope(dat, mean_end_grad,  ax = ax3, ret = ret, return_dat = True, invert_score = invert_scores)
+    #check plot function and invert numbers in annotation,
+    #invert output ratio value
+    print(f"slope freq high slope ratio: {ratio}")
+    ax4, max_secant, std_val, cum_curve_area_ratio = plot_secant_line( dat, cum_sum = cum_sum, ax = ax4,  return_dat = True, invert_score = invert_scores)
+    ax5, amb_genes, dat = plot_dropout(dat, True, 2, ax = ax5, return_dat = True)
+    ret6 = plot_pct_ambient(dat, dat_plot_dropout = True, ax = ax6 , return_dat = True)
+    if( ret6 == None ):
+        mean_pct = 0
+    else: 
+        ax6, mean_pct = ret6
+    ax7 = plot_total_count(dat, ax = ax7)
     
     
     if(save_amb_ls and len(amb_genes) >0):

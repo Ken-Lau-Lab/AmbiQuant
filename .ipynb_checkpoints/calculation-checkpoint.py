@@ -16,8 +16,8 @@ from scipy.optimize import curve_fit
 from scipy import stats
 
 
-//TODO: change this area
-//chnage zc_function to data_processing 
+#//TODO: change this area
+#//chnage zc_function to data_processing 
 import sys
 sys.path.append("/home/lucy/")
 import zc_function as zc
@@ -108,8 +108,7 @@ def bin_cumsum_slope( sample_dat, scale = True, mode = -1, scale_slope_vtr = SCA
 def get_freq_slope_bin_cut(mode, sample_dat, s1_grad):
     """This is a helper function for bin_cumsum_slope() function that helps to find the freq*slope curve cut-off to exlude the bins of very low slopes
     param mode: this parameter determines the cut-off method used to exlude the high-frequency bins for very low slopes from the cumsum curve. 
-        If it is an integer >0, the cut-off will be the mean+ 1*stdev of the last portion of the cumsum values, where the portion =(inlfection_fold -mode)/inflection_fold. 
-        If it is 0.5, it will simply set the cut-off at the mean of the entire cumsum data points. 
+        If it is an integer >0, the cut-off will be the mean+ 1*stdev of the last portion of the cumsum values, where the portion =(inlfection_fold -mode)/inflection_fold.  
         If it is 0, it will set the cut off at mean of all slopes + 1 std of all slopes
         If it is -1, it will set the cut-off at the median of all slopes + 1std of all slopes
         Default set to -1 (the median) 
@@ -119,13 +118,6 @@ def get_freq_slope_bin_cut(mode, sample_dat, s1_grad):
     return: a single value below which the freq*slope curve's x values should be excluded """
     
     #TODO: better documentation and consider to remove the modes other than median 
-    
-    if (mode==0.5):
-        # cut of should be the mean of the slopes (s1_grad)
-        #thresh = s1_grad.mean()
-        thresh = s1_grad[int(0.5* len(s1_grad))]
-        #print(f"from calc get freq slope cut func mode 0.5: thrsh = {thresh}")
-        return thresh
     
     if(mode == 0):
         # try to find a approximate normal distribution of the major peak and cut 1 std after the mean
@@ -143,32 +135,11 @@ def get_freq_slope_bin_cut(mode, sample_dat, s1_grad):
         #print(f"from calc get freq slope cut func mode -1: thrsh = {thresh}")
         return thresh
     
+    else:
+        raise ValueError("mode number should 0 or -1")
+        return 
     
-    #some exception cases
-    if("inflection_fold" not in  sample_dat.uns):
-        raise RuntimeError("inflection_fold field missing, should run cut_off_h5ad / cut_off_from_dropset function from quality_function module before this function")
-
-    if(mode > sample_dat.uns["inflection_fold"]):
-        fold = sample_dat.uns["inflection_fold"]
-        #print(f"mode number is {mode},inflection_fold is {fold}")
-        raise ValueError("mode number should be lower than the inflection_fold value")
-
-
-    #find the starting point based on inflection points
-    x_end_part_start = int( sample_dat.uns["inflection1"]  * ( sample_dat.uns["inflection_fold"]-mode)  /  sample_dat.uns["inflection_fold"] ) 
     
-    if(x_end_part_start >= sample_dat.n_obs ):
-        #in rare case when the inflection point is not a fraction of the data size
-        print("Warning: inflection point too close to data sample size; set cumsum slope histgram cut-off at mean slope")
-        x_end_part_start = int( s1_grad.mean() )
-
-    end_grad = s1_grad[x_end_part_start:sample_dat.n_obs ]
-    mean_end_grad = end_grad.mean()
-    std_end_grad = end_grad.std()
-    thresh = mean_end_grad + std_end_grad
-    #print(f"from calc get freq slope cut func int mode: thrsh = {thresh}")
-        
-    return thresh
         
             
 
@@ -182,7 +153,6 @@ def high_slope_area( sample_dat, thresh = None, scale = True, ret = None, mode =
     param scale: set True if want to scale the x and y axes value to 1, see the description of bin_cumsum_slope()
     param mode: this parameter determines the cut-off method used to exlude the high-frequency bins for very low slopes from the cumsum curve. 
         If it is an integer >0, the cut-off will be the mean+ 1*stdev of the last portion of the cumsum values, where the portion =(inlfection_fold -mode)/inflection_fold. 
-        If it is 0.5, it will simply set the cut-off at the mean of the entire cumsum data points. 
         If it is 0, it will set the cut off at mean of all slopes + 1 std of all slopes
         If it is -1, it will set the cut-off at the median of all slopes + 1std of all slopes
         Default set to -1 (the median)  
