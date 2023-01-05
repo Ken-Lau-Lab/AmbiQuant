@@ -7,6 +7,7 @@ import scanpy as sc
 import dropkick as dk
 import pandas as pd
 import numpy as np
+import math
 from matplotlib import pyplot as plt
 from sklearn.preprocessing import minmax_scale
 import seaborn as sn 
@@ -348,40 +349,6 @@ def plot_total_count(sample_dat, ax = None, fill = True):
 
 
 
-#updated version of formatted figures 
-#8/19/22
-def formatted_figures(dat, save_amb_ls = None, save_fig = None, show_dat_name = None, mode = -1):
-    fig = plt.figure(figsize = [15,20])
-    ax1 = fig.add_subplot(421)
-    ax2 = fig.add_subplot(422)
-    ax3 = fig.add_subplot(423)
-    ax4 = fig.add_subplot(424)
-    ax5 = fig.add_subplot(425)
-    ax6 = fig.add_subplot(426)
-    ax7 = fig.add_subplot(427)
-
-
-    ax1, cum_sum = plot_cum_sum(dat, scale = True, ax =ax1, return_data = True )
-    if(show_dat_name):
-        ax1.set_title(show_dat_name)
-    ax2, ret, mean_end_grad = plot_slope( dat, cum_sum = cum_sum, ax = ax2, return_dat = True, mode = mode )
-    print(f"mean_end_grad: {mean_end_grad}")
-    ax3, ratio = plot_freq_weighted_slope(dat, mean_end_grad,  ax = ax3, ret = ret, return_dat = True, mode = mode)
-    ax4, max_secant, std_val, cum_curve_area_ratio = plot_secant_line( dat, cum_sum = cum_sum, ax = ax4,  return_dat = True)
-    ax5, amb_genes, dat = plot_dropout(dat, True, 2, ax = ax5, return_dat = True)
-    ret6 = plot_pct_ambient(dat, dat_plot_dropout = True, ax = ax6 , return_dat = True)
-    if( ret6 == None ):
-        mean_pct = 0
-    else: 
-        ax6, mean_pct = ret6
-    ax7 =plot_total_count(dat, ax = ax7)
-    
-    if(save_amb_ls and len(amb_genes) >0):
-        np.savetxt(save_amb_ls,amb_genes, delimiter=',', fmt = "%s")
-    #the 1st ratio is freq*slope area ratio over the entire square ratio
-    if(save_fig):
-        plt.savefig(save_fig)
-    return [ratio, max_secant, std_val, cum_curve_area_ratio, len(amb_genes), mean_pct, dat]
 
 
 
@@ -429,8 +396,9 @@ def formatted_figures_one_column(dat, save_amb_ls = None,
 
 def formatted_figures_one_column_inverted(dat, save_amb_ls = None, 
                       save_fig = None, show_dat_name = None, 
-                      slope_freq_mode = -1, invert_scores = True):
+                      slope_freq_mode = -1, invert_scores = True, dropout_thresh = 2):
     
+    plt.rcParams["axes.grid"] =False
     fig = plt.figure(figsize = [6,34])
     ax1 = fig.add_subplot(711)
     ax2 = fig.add_subplot(712)
@@ -440,8 +408,8 @@ def formatted_figures_one_column_inverted(dat, save_amb_ls = None,
     ax6 = fig.add_subplot(716)
     ax7 = fig.add_subplot(717)
     
-    plt.tight_layout()
-    plt.rcParams["axes.grid"] =False
+    plt.tight_layout(w_pad = 1, h_pad = 3)
+    
 
     
     ax1, cum_sum = plot_cum_sum(dat, scale = True, ax =ax1, return_data = True )
@@ -454,7 +422,59 @@ def formatted_figures_one_column_inverted(dat, save_amb_ls = None,
     #invert output ratio value
     print(f"slope freq high slope ratio: {ratio}")
     ax4, max_secant, std_val, cum_curve_area_ratio = plot_secant_line( dat, cum_sum = cum_sum, ax = ax4,  return_dat = True, invert_score = invert_scores)
-    ax5, amb_genes, dat = plot_dropout(dat, True, 2, ax = ax5, return_dat = True)
+    ax5, amb_genes, dat = plot_dropout(dat, True,  ax = ax5, return_dat = True, dropout_thresh = dropout_thresh)
+    ret6 = plot_pct_ambient(dat, dat_plot_dropout = True, ax = ax6 , return_dat = True)
+    if( ret6 == None ):
+        mean_pct = 0
+    else: 
+        ax6, mean_pct = ret6
+    ax7 = plot_total_count(dat, ax = ax7)
+    
+    
+    if(save_amb_ls and len(amb_genes) >0):
+        np.savetxt(save_amb_ls,amb_genes, delimiter=',', fmt = "%s")
+    #the 1st ratio is freq*slope area ratio over the entire square ratio
+    if(save_fig):
+        plt.savefig(save_fig)
+    return [ratio, max_secant, std_val, cum_curve_area_ratio, len(amb_genes), mean_pct, dat]
+
+
+def formatted_figures_inverted(dat, save_amb_ls = None, 
+                      save_fig = None, show_dat_name = None, 
+                      slope_freq_mode = -1, invert_scores = True, dropout_thresh = 2, ncols = 1):
+    
+    total_figs = 7
+    ncols = int(ncols)
+    if(ncols<1 or ncols>7):
+        ncols = 1
+    nrows = math.ceil(total_figs / ncols ) 
+    
+    plt.rcParams["axes.grid"] =False
+    
+    fig = plt.figure(figsize = [6*ncols,5*nrows])
+    ax1 = fig.add_subplot(nrows, ncols, 1)
+    ax2 = fig.add_subplot(nrows, ncols, 2)
+    ax3 = fig.add_subplot(nrows, ncols, 3)
+    ax4 = fig.add_subplot(nrows, ncols, 4)
+    ax5 = fig.add_subplot(nrows, ncols, 5)
+    ax6 = fig.add_subplot(nrows, ncols, 6)
+    ax7 = fig.add_subplot(nrows, ncols, 7)
+    
+    plt.tight_layout(w_pad = 2, h_pad = 3)
+    
+
+    
+    ax1, cum_sum = plot_cum_sum(dat, scale = True, ax =ax1, return_data = True )
+    if(show_dat_name):
+        ax1.set_title(show_dat_name)
+    ax2, ret, mean_end_grad = plot_slope( dat, cum_sum = cum_sum, ax = ax2, return_dat = True, mode = slope_freq_mode)
+    print(f"mean_end_grad: {mean_end_grad}")
+    ax3, ratio = plot_freq_weighted_slope(dat, mean_end_grad,  ax = ax3, ret = ret, return_dat = True, invert_score = invert_scores)
+    #check plot function and invert numbers in annotation,
+    #invert output ratio value
+    print(f"slope freq high slope ratio: {ratio}")
+    ax4, max_secant, std_val, cum_curve_area_ratio = plot_secant_line( dat, cum_sum = cum_sum, ax = ax4,  return_dat = True, invert_score = invert_scores)
+    ax5, amb_genes, dat = plot_dropout(dat, True,  ax = ax5, return_dat = True, dropout_thresh = dropout_thresh)
     ret6 = plot_pct_ambient(dat, dat_plot_dropout = True, ax = ax6 , return_dat = True)
     if( ret6 == None ):
         mean_pct = 0
