@@ -16,15 +16,11 @@ from scipy.optimize import curve_fit
 from scipy import stats
 
 
-#//TODO: change this area
-#//chnage zc_function to data_processing 
 import sys
-sys.path.append("/home/lucy/")
-import zc_function as zc
-sys.path.append("/home/lucy/STAR_Protocol/")
+
+sys.path.append("./QCPipe_dir")
 import QCPipe
-sys.path.append("/home/lucy/quality/")
-import zc_quality_function as zc_qc
+import quality_control_function as qc_function 
 
 
 
@@ -207,7 +203,7 @@ def secant_metrics(sample_dat, scale = True):
     secant_line=secant_coef*x_vals
     secant_dist=abs(cumsum-secant_line)
     std_val = np.std(secant_dist)
-    ratio = zc_qc.area_ratio_sample(sample_dat)
+    ratio = qc_function.area_ratio_sample(sample_dat)
     max_dist = max(secant_dist)
     
     return [max_dist, std_val, ratio ] 
