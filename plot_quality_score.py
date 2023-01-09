@@ -370,9 +370,9 @@ def formatted_figures_one_column(dat, save_amb_ls = None,
     if(show_dat_name):
         ax1.set_title(show_dat_name)
     ax2, ret, mean_end_grad = plot_slope( dat, cum_sum = cum_sum, ax = ax2, return_dat = True, mode = slope_freq_mode)
-    print(f"mean_end_grad: {mean_end_grad}")
+    #print(f"mean_end_grad: {mean_end_grad}")
     ax3, ratio = plot_freq_weighted_slope(dat, mean_end_grad,  ax = ax3, ret = ret, return_dat = True)
-    print(f"slope freq high slope ratio: {ratio}")
+    #print(f"slope freq high slope ratio: {ratio}")
     ax4, max_secant, std_val, cum_curve_area_ratio = plot_secant_line( dat, cum_sum = cum_sum, ax = ax4,  return_dat = True)
     ax5, amb_genes, dat = plot_dropout(dat, True, 2, ax = ax5, return_dat = True)
     ret6 = plot_pct_ambient(dat, dat_plot_dropout = True, ax = ax6 , return_dat = True)
@@ -416,11 +416,11 @@ def formatted_figures_one_column_inverted(dat, save_amb_ls = None,
     if(show_dat_name):
         ax1.set_title(show_dat_name)
     ax2, ret, mean_end_grad = plot_slope( dat, cum_sum = cum_sum, ax = ax2, return_dat = True, mode = slope_freq_mode)
-    print(f"mean_end_grad: {mean_end_grad}")
+    #print(f"mean_end_grad: {mean_end_grad}")
     ax3, ratio = plot_freq_weighted_slope(dat, mean_end_grad,  ax = ax3, ret = ret, return_dat = True, invert_score = invert_scores)
     #check plot function and invert numbers in annotation,
     #invert output ratio value
-    print(f"slope freq high slope ratio: {ratio}")
+    #print(f"slope freq high slope ratio: {ratio}")
     ax4, max_secant, std_val, cum_curve_area_ratio = plot_secant_line( dat, cum_sum = cum_sum, ax = ax4,  return_dat = True, invert_score = invert_scores)
     ax5, amb_genes, dat = plot_dropout(dat, True,  ax = ax5, return_dat = True, dropout_thresh = dropout_thresh)
     ret6 = plot_pct_ambient(dat, dat_plot_dropout = True, ax = ax6 , return_dat = True)
@@ -468,11 +468,11 @@ def formatted_figures_inverted(dat, save_amb_ls = None,
     if(show_dat_name):
         ax1.set_title(show_dat_name)
     ax2, ret, mean_end_grad = plot_slope( dat, cum_sum = cum_sum, ax = ax2, return_dat = True, mode = slope_freq_mode)
-    print(f"mean_end_grad: {mean_end_grad}")
+    #print(f"mean_end_grad: {mean_end_grad}")
     ax3, ratio = plot_freq_weighted_slope(dat, mean_end_grad,  ax = ax3, ret = ret, return_dat = True, invert_score = invert_scores)
     #check plot function and invert numbers in annotation,
     #invert output ratio value
-    print(f"slope freq high slope ratio: {ratio}")
+    #print(f"slope freq high slope ratio: {ratio}")
     ax4, max_secant, std_val, cum_curve_area_ratio = plot_secant_line( dat, cum_sum = cum_sum, ax = ax4,  return_dat = True, invert_score = invert_scores)
     ax5, amb_genes, dat = plot_dropout(dat, True,  ax = ax5, return_dat = True, dropout_thresh = dropout_thresh)
     ret6 = plot_pct_ambient(dat, dat_plot_dropout = True, ax = ax6 , return_dat = True)
