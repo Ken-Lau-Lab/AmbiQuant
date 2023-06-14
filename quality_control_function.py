@@ -43,7 +43,7 @@ def read_dropest(dir_path, gene_file_identifier = "features", barcode_file_ident
    @return: the anndata object for the dataset """
     
     data_matrix = glob.glob(dir_path+"/*.mtx")[0]
-    print(dir_path+ f"/*{gene_file_identifier}.*")
+    #print(dir_path+ f"/*{gene_file_identifier}.*")
     data_genes = glob.glob(dir_path+ f"/*{gene_file_identifier}.*")[0]
     data_barcodes = glob.glob(dir_path+ f"/*{barcode_file_identifier}.*")[0]
     adata = sc.read_mtx(data_matrix).T

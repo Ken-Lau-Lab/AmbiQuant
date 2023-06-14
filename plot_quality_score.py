@@ -398,6 +398,10 @@ def formatted_figures_one_column_inverted(dat, save_amb_ls = None,
                       save_fig = None, show_dat_name = None, 
                       slope_freq_mode = -1, invert_scores = True, dropout_thresh = 2):
     
+    """ return vector [empty_droplet_area_ratio, inv_max_secant, inv_secant_std_val, inv_auc_cum_curve, num_amb, pct_amb, anndata_obj]
+"""
+    
+    
     plt.rcParams["axes.grid"] =False
     fig = plt.figure(figsize = [6,34])
     ax1 = fig.add_subplot(711)
@@ -442,6 +446,8 @@ def formatted_figures_one_column_inverted(dat, save_amb_ls = None,
 def formatted_figures_inverted(dat, save_amb_ls = None, 
                       save_fig = None, show_dat_name = None, 
                       slope_freq_mode = -1, invert_scores = True, dropout_thresh = 2, ncols = 1):
+    """ return vector [empty_droplet_area_ratio, inv_max_secant, inv_secant_std_val, inv_auc_cum_curve, num_amb, pct_amb, anndata_obj]
+"""
     
     total_figs = 7
     ncols = int(ncols)

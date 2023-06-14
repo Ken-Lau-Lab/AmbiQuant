@@ -281,3 +281,51 @@ def inverse_secant_std(curr_val):
 
     return 0.5-curr_val
 
+
+def invert_scores(orig_score1):
+    """ Invert all the related scores to scale with ambinet contamination level, the input should be the output vectore [0:6] of the formatted_figure() function in the plot_quality module
+    
+    @param orig_score1: a list of floats with the format [high_slope_area, max_secant_dist, sec_std, auc, num_amb, mean_pct_amb]"""
+    
+    
+    if(len(orig_score1) !=6):
+        print('wrong list size')
+        return 
+    #low_slope_area, inv_max_secant_dist, inv_sec_std, inv_auc, num_amb, mean_pct_amb
+    orig_score = orig_score1.copy()
+    orig_score[0] = inverse_scaled_slope_sum(orig_score[0])
+    orig_score[1] = inverse_max_secant(orig_score[1])
+    orig_score[2] = inverse_secant_std(orig_score[2])
+    orig_score[3] = inverse_auc_pct(orig_score[3])
+    
+    return orig_score
+
+
+
+
+
+def overall_score(ret, from_formatted_figures = True):
+    """Calculate an average of the scores returned from the formatted figure function if inverted_score option is used
+    This score can be used as a single value for ambient contamination level and is scaled from 0 to 1.
+    If ret is the direct output from the formatted_figures() function, the last element from ret would be the anndata object and will not be included in the analysis; otherwise if only the scores is passed-in, the list should be in the format of [low_slope_area, inv_max_secant_dist, inv_sec_std, inv_auc, num_amb, mean_pct_amb]
+    
+    @param ret: the returned list from formatted_figures_inverted() function in plot_quality_score module
+    @param from_formatted_figures: set True if passing in the direct output from the function; if set False, should have the expected format as described above
+    @return: a float value which is an avg of transformed scores"""
+    
+    
+    
+    if(from_formatted_figures):
+        # convert from np array or other series type to python list object for calculation 
+        
+        scores = list( ret[0:-1].copy() ) #low_slope_area, inv_max_secant_dist, inv_sec_std, inv_auc, num_amb, mean_pct_amb
+    else:
+        scores = list( ret.copy() ) 
+        
+    scores[2] = 2*scores[2] #double the std to scale it to 0 to 1
+    scores = scores[0:4] + [ scores[5]/100 ]  #remove num ambient, make percentage of ambient gene to decimal
+    
+    return np.array(scores).mean()
+
+
+
