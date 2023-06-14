@@ -7,7 +7,7 @@
 conda env create -f qc_pipe0.yml
 python -m ipykernel install --user --name=qc_pipe0
 ```
-    this is the same environment with the [QCPipe](https://github.com/Ken-Lau-Lab/STAR_Protocol.git) pipeline published in [this protocol](https://pubmed.ncbi.nlm.nih.gov/33982010/)
+- this is the same environment with the [QCPipe](https://github.com/Ken-Lau-Lab/STAR_Protocol.git) pipeline published in [this protocol](https://pubmed.ncbi.nlm.nih.gov/33982010/)
 
 
 - Follow the steps in [ExamplePlots.ipynb](https://github.com/Ken-Lau-Lab/AmbientContaminationMetrics/blob/main/ExamplePlots.ipynb) to generate ambient contamination metrics plots
