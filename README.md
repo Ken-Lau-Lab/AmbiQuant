@@ -1,6 +1,6 @@
 # AmbientContaminationMetrics
 - Quantification of scRNA-seq raw data quality
-- Follow the steps in ExamplePlots.ipynb to generate ambient contamination metrics plots
+- Follow the steps in [ExamplePlots.ipynb](https://github.com/Ken-Lau-Lab/AmbientContaminationMetrics/blob/main/ExamplePlots.ipynb) to generate ambient contamination metrics plots
 - example dataset in the notebook can be downloaded:
     + dropset option:
     <br> make sure you are at the right working directory
