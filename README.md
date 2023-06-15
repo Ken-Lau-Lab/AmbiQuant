@@ -1,5 +1,5 @@
-# AmbientContaminationMetrics
-- Quantification of scRNA-seq raw data quality
+# AmbiQuant: Ambient contamination quantification metrics
+- Quantitative ambient contamination-based metrics to evaluate scRNA-seq data quality
 
 
 - The environment for this pipeline can be installed through the included .yml with the following, which will also initialize a jupyter kernel: 
