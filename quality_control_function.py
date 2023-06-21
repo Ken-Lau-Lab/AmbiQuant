@@ -66,7 +66,7 @@ def inspect_data( data_path, save_name, cut_off = None,
                  var_col = 0, obs_col = 0):
     """this function reads in count matrices, gene and barcode files and combines them to an h5ad file and visualize the cumulative transcripts count curve and inflection points using QCPipe's qc.find_inflection() function.
     
-    @param data_path: the directory that stores the raw data files
+    @param data_path: the directory that stores the raw data files (gene and barcode .tsv/csv/txt files and martix .mtx file)
     @param savename: pathway and file name to store the h5ad file, set to None if no need to save the h5ad
     @param cut_off: set to an int to specifcy how many top ranked barcodes you want to keep, default set to None which will not cut-off the dataset 
     @param gene_file_identifier, barcode_file_identifier, gene_file_delim, barcode_file_delim: parameters to specify how to read in the barcode and gene_name file. See read_dropset for detailed description 
