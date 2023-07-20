@@ -162,9 +162,9 @@ def plot_freq_weighted_slope(sample_dat,  thresh = None ,ax = None, ret = None, 
     
     if(invert_score):
         high_slope_area = calc.inverse_scaled_slope_sum(high_slope_area)
-        ax5.text(0.5*max(mean_slope), 0.9*max(res), f"inverted high\nslope area: {high_slope_area: .2f}")
+        ax5.text(0.5*max(mean_slope), 0.9*max(res), f"Empty droplet\nscaled slope sum: {high_slope_area: .2f}", color = 'cornflowerblue')
     else:
-        ax5.text(0.6*max(mean_slope), 0.4*max(res), f"high slope area:\n {high_slope_area: .2f}")
+        ax5.text(0.6*max(mean_slope), 0.4*max(res), f"high slope area:\n {high_slope_area: .2f}", color = 'salmon')
     
     x_axis = np.linspace(min(mean_slope), max(mean_slope), 6)
     ax5.set_xticks(x_axis)
@@ -445,7 +445,8 @@ def formatted_figures_one_column_inverted(dat, save_amb_ls = None,
 
 def formatted_figures_inverted(dat, save_amb_ls = None, 
                       save_fig = None, show_dat_name = None, 
-                      slope_freq_mode = -1, invert_scores = True, dropout_thresh = 2, ncols = 1):
+                      slope_freq_mode = -1, invert_scores = True, print_overall_score = True, 
+                               dropout_thresh = 2, ncols = 1):
     """ return vector [empty_droplet_area_ratio, inv_max_secant, inv_secant_std_val, inv_auc_cum_curve, num_amb, pct_amb, anndata_obj]
 """
     
@@ -494,4 +495,10 @@ def formatted_figures_inverted(dat, save_amb_ls = None,
     #the 1st ratio is freq*slope area ratio over the entire square ratio
     if(save_fig):
         plt.savefig(save_fig)
-    return [ratio, max_secant, std_val, cum_curve_area_ratio, len(amb_genes), mean_pct, dat]
+        
+        
+    if( print_overall_score):
+        r = [ratio, max_secant, std_val, cum_curve_area_ratio, len(amb_genes), mean_pct] # returned values 
+        s = calc.overall_score(r, from_formatted_figures = False) # overall score
+        print(f"Overall score: {s}")
+    return [ratio, max_secant, std_val, cum_curve_area_ratio, len(amb_genes), mean_pct, dat] 
