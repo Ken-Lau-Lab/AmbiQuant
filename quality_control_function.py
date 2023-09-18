@@ -40,7 +40,7 @@ def read_dropest(dir_path, gene_file_identifier = "features", barcode_file_ident
    @param gene_file_delim and barcode_file_delim: delimiters used in the 2 files. Will pass to pandas.read_csv() function as the argument for delimiter parameter
    @param var_col and obs_col: when reading in data for adata's var and obs index, which column of the original file should be used. Default set to 0. Note that sometimes, the gene file has multiple columns such as ensembl ID, gene names and other info.Ensembl ID are in the first column in most cases
    
-   @return: the anndata object for the dataset """
+   @return: the anndata object for the dataset that is reordered to have descending UMI counts """
     
     data_matrix = glob.glob(dir_path+"/*.mtx")[0]
     #print(dir_path+ f"/*{gene_file_identifier}.*")
