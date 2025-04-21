@@ -1,6 +1,6 @@
 # AmbiQuant: Ambient contamination quantification metrics
 - Quantitative ambient contamination-based metrics to evaluate scRNA-seq data quality
-- Check out our publication [<font color = brown>*A contamination focused approach for optimizing the single-cell RNA-seq experiment*</font>](https://doi.org/10.1016/j.isci.2023.107242)
+- Check out our publication <font color = brown>**A contamination focused approach for optimizing the single-cell RNA-seq experiment**</font>[here] (https://doi.org/10.1016/j.isci.2023.107242)
 
 
 - The environment for this pipeline can be installed through the included .yml with the following, which will also initialize a jupyter kernel: 
