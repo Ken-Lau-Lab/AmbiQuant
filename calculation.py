@@ -16,10 +16,8 @@ from scipy.optimize import curve_fit
 from scipy import stats
 
 
-import sys
 
-sys.path.append("./QCPipe_dir")
-import QCPipe
+from  QCPipe_dir import QCPipe
 import quality_control_function as qc_function 
 
 
@@ -31,18 +29,18 @@ SCALE_SLOPE = True
 
 
 
-def add_qc_ambient_metrics(sample_dat, dropout_threshold =2):
+def add_qc_ambient_metrics(sample_dat, dropout_threshold = 2, num_ambient = None):
     
     #add dropout values 
     if( not('pct_dropout_by_counts'  in sample_dat.var )): 
         sample_dat.var["pct_dropout_by_counts"] = np.array(
             (1 - (sample_dat.X.astype(bool).sum(axis=0) / sample_dat.n_obs)) * 100
             ).squeeze()
-    num_ambient = len( sample_dat.var["pct_dropout_by_counts"][ sample_dat.var["pct_dropout_by_counts"]<=dropout_threshold])
+    if(  not num_ambient ):    
+        num_ambient = len( sample_dat.var["pct_dropout_by_counts"][ sample_dat.var["pct_dropout_by_counts"]<=dropout_threshold])
     
     #add ambient var column and pct_counts_ambient in obs
     if('pct_counts_ambient' not in sample_dat.obs.columns):
-        lowest_dropout = sample_dat.var.pct_dropout_by_counts.nsmallest(n=num_ambient).min()
         highest_dropout = sample_dat.var.pct_dropout_by_counts.nsmallest(n=num_ambient).max()
         sample_dat.var["ambient"] = sample_dat.var.pct_dropout_by_counts <= highest_dropout
         

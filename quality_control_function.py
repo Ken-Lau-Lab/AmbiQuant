@@ -4,7 +4,6 @@ Functions related to quality control
 """
 
 import scanpy as sc; sc.set_figure_params(color_map="viridis", frameon=False, figsize= [4,4])
-import dropkick as dk
 import pandas as pd
 import numpy as np
 from matplotlib import pyplot as plt
@@ -21,8 +20,8 @@ from scipy import stats
 
 
 import data_processing as data_proc
-sys.path.append("./QCPipe_dir/")
-import QCPipe
+import calculation as calc
+from QCPipe_dir import QCPipe
 
 
 
@@ -352,8 +351,8 @@ def dropkick_curves_dropout_cutoff(s2, dropout_thresh = 2, ax= None):
     return: axes of dropout plot, a list of ambient genes and the anndata object with calculated metrics
     """
     s2.raw = s2
-    num_ambient = len( s2.var["pct_dropout_by_counts"][ s2.var["pct_dropout_by_counts"]<=dropout_thresh]) 
-    s2 = dk.recipe_dropkick(s2, filter=False, n_hvgs=None, X_final="raw_counts", n_ambient= num_ambient)
+    calc.add_qc_ambient_metrics(s2, dropout_threshold = dropout_thresh) # add var.ambient and obs.pct_counts_ambient to s2 based on dropout threshold
+    print_ambient_genes( s2)
     qc_plt, amb_genes = revized_dropout_plot(s2, show=False, ax=ax)
     
     return qc_plt, amb_genes, s2
@@ -366,11 +365,34 @@ def dropkick_curves(s2, num_ambient = 10, ax = None):
     
     return: axes of dropout plot, a list of ambient genes and the anndata object with calculated metrics"""
     s2.raw = s2
-    s2 = dk.recipe_dropkick(s2, filter=False, n_hvgs=None, X_final="raw_counts", n_ambient = num_ambient)
-    #qc_plt = dk.qc_summary(s2)
+    calc.add_qc_ambient_metrics(s2, num_ambient = num_ambient) # add var.ambient and obs.pct_counts_ambient to s2 based on number of ambient genes
+    print_ambient_genes( s2)
     qc_plt, amb_genes = revized_dropout_plot(s2, show=False, ax=ax)
     
     return qc_plt, amb_genes, s2
+
+
+def print_ambient_genes( adata):
+    """This is a helper function to print out the gene names of ambient genes identified from dropkick_curves_dropout_cutoff or dropkick_curves funtions.
+    @param adata: the sample anndata object
+    """
+
+    n_ambient = adata.var.ambient.sum()
+    lowest_dropout = adata.var.pct_dropout_by_counts.nsmallest(n=n_ambient).min()
+    highest_dropout = adata.var.pct_dropout_by_counts.nsmallest(n=n_ambient).max()
+    
+    # reorder genes by dropout rate
+    adata = adata[:, np.argsort(adata.var.pct_dropout_by_counts)].copy()
+    
+    print(
+        "Top {} ambient genes have dropout rates between {} and {} percent:\n\t{}".format(
+            len(adata.var_names[adata.var.ambient]),
+            round(lowest_dropout, 3),
+            round(highest_dropout, 3),
+            adata.var_names[adata.var.ambient].tolist(),
+        )
+    )
+    
 
 
 
@@ -489,8 +511,9 @@ def revized_dropout_plot(adata, show=False, ax=None):
     ax.set_ylabel("Dropout Rate (%)", fontsize=12)
     ax.set_xlabel("Ranked Genes", fontsize=12)
     ax.tick_params(axis="both", which="major", labelsize=12)
-    
-    genes = [adata.var_names[adata.var.ambient][x] for x in range(adata.var.ambient.sum())]
+
+    genes = adata.var_names[adata.var.ambient]
+         
     if not show:
         return ax, genes
     else:

@@ -4,7 +4,6 @@
 
 
 import scanpy as sc
-import dropkick as dk
 import pandas as pd
 import numpy as np
 import math
@@ -20,11 +19,8 @@ from scipy import stats
 
 
 #TODO: change this area
-
-import sys
-#import data_processing as dataproc #change zc to dataproc
-sys.path.append("./QCPipe_dir/")
-import QCPipe
+import sys 
+from  QCPipe_dir import QCPipe
 import quality_control_function as func_qc 
 import calculation as calc 
 
@@ -502,3 +498,6 @@ def formatted_figures_inverted(dat, save_amb_ls = None,
         s = calc.overall_score(r, from_formatted_figures = False) # overall score
         print(f"Overall score: {s}")
     return [ratio, max_secant, std_val, cum_curve_area_ratio, len(amb_genes), mean_pct, dat] 
+
+
+
